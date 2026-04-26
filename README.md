@@ -55,12 +55,29 @@ Then open http://localhost:8080 in your browser.
 ## 🚀 Step-by-Step Guide
 
 ### Step 1 — Export your WhatsApp chats
-1. Open WhatsApp on your phone
-2. Tap any chat → tap the contact/group name at the top
-3. Scroll down → **Export Chat** → **Without Media**
-4. Send the .txt file to your computer
-5. Create a folder called `whatsapp_exports` next to the scripts
-6. Put all .txt files inside it
+
+**Option A — Request Account Info (recommended, gets ALL chats at once):**
+1. WhatsApp → Settings → Account → **Request Account Info**
+2. Tap **Request Report** — WhatsApp will notify you when it's ready (up to 3 days)
+3. Download and extract the .zip file
+4. Find the HTML chat files inside (named "WhatsApp Chat with ...")
+5. Create a folder called `whatsapp_account_data` next to the scripts
+6. Copy all the HTML files into it
+7. Open `parse_whatsapp.py` and make sure:
+```python
+EXPORT_TYPE = "account_data"
+ACCOUNT_DATA_FOLDER = "whatsapp_account_data"
+```
+
+**Option B — Export chats one by one (per-chat .txt):**
+1. Open any WhatsApp chat → tap name → Export Chat → Without Media
+2. Create a folder called `whatsapp_exports` next to the scripts
+3. Put all .txt files inside it
+4. Open `parse_whatsapp.py` and set:
+```python
+EXPORT_TYPE = "chat_export"
+YOUR_NAME = "Your Name"   # exactly as it appears in the chat
+```
 
 ### Step 2 — Export your Discord messages
 
@@ -90,19 +107,12 @@ OFFICIAL_MESSAGES_FOLDER = "path/to/messages"
 2. Deselect everything → select only **Gmail**
 3. Download the .zip → extract it → find the `.mbox` file
 4. Place `mail.mbox` next to the scripts
-
-### Step 4 — Configure the scripts
-Open `parse_whatsapp.py` and set:
-```python
-YOUR_NAME = "Your Name"   # exactly as it appears in WhatsApp
-```
-
-Open `parse_emails.py` and set:
+5. Open `parse_emails.py` and set:
 ```python
 YOUR_EMAIL = "youremail@gmail.com"
 ```
 
-### Step 5 — Run the scripts in order
+### Step 4 — Run the scripts in order
 
 ```bash
 # Extract your messages from each source
@@ -122,8 +132,8 @@ python generate_system_prompt.py
 ## 📁 What Gets Created
 
 ```
-whatsapp_exports/          ← your raw WhatsApp .txt files (you put these here)
-discord_exports/           ← your Discord .json files (you put these here)
+whatsapp_account_data/     ← HTML files from WhatsApp account data zip
+discord_exports/           ← Discord .json files (DiscordChatExporter)
 my_whatsapp_messages.txt   ← your extracted WhatsApp messages
 my_discord_messages.txt    ← your extracted Discord messages
 my_email_messages.txt      ← your extracted email messages
@@ -175,17 +185,21 @@ ollama run llama3.2
 
 ## 🛠️ Troubleshooting
 
-**"Ollama is not running"**
-→ Open a terminal and run: `ollama serve`
+**"Folder not found" for whatsapp_account_data**
+→ Create the folder and copy the HTML files from the WhatsApp zip into it
 
-**"No messages found"**
-→ Run the parse scripts first before categorize_messages.py
+**WhatsApp HTML files show 0 messages**
+→ WhatsApp sometimes changes their HTML format between versions
+→ Try switching to EXPORT_TYPE = "chat_export" as a fallback
 
-**WhatsApp messages not detected**
+**"No messages found" for chat_export**
 → Open the .txt file in a text editor and copy your name exactly as it appears
 
 **Discord messages not detected**
-→ Check that YOUR_DISCORD_USERNAME matches your username in the export file
+→ Check that YOUR_DISCORD_USERNAME matches your username in the .json file
+
+**"Ollama is not running"**
+→ Open a terminal and run: `ollama serve`
 
 **Script runs slowly**
 → Normal on CPU-only. A GPU speeds things up significantly.
@@ -195,7 +209,7 @@ ollama run llama3.2
 
 ## 💡 Tips
 
-- More data = better style mimicry. Export as many chats as possible.
+- More data = better style mimicry. The account data export gives the most.
 - Discord + WhatsApp together give the most authentic casual voice.
 - You can manually edit the generated system prompts to fine-tune them.
 - Try asking the AI: *"How would I respond to: [message]?"*
